@@ -8,7 +8,8 @@ Code, Compile, Run and Debug online from anywhere in world.
 *******************************************************************************/
 #include <stdio.h>
 #include <string.h>
-#include "test.h"
+#include <ctype.h>
+#include "test.c"
 
 /*
 extern void TestOpen(void);
@@ -60,7 +61,9 @@ void TestClose(void){
 } 
 */
 
-int wordle_intentos = 0;
+char userAnswer[20];
+int  userAttemps = 0;
+char * wordleWordOfDay;
 
 #define DictionaryLength 5
 char *Dictionary[DictionaryLength] = {
@@ -89,36 +92,6 @@ existsInDictionary (char *word)
 }
 
 
-
-
-int
-kapikua (int num)
-{
-  int aux, resto = 0, numInv = 0;
-
-  aux = num;
-
-  while (aux > 0)
-    {
-      resto = aux % 10;
-      aux = aux / 10;
-      numInv = numInv * 10 + resto;
-    }
-  return numInv;
-}
-
-int
-TestKapikua (void)
-{
-  TestOpen ();
-  Test ("", kapikua (0), 0);
-  Test ("", kapikua (12), 21);
-  Test ("", kapikua (124), 421);
-  Test ("", kapikua (10), 01);
-  Test ("", kapikua (14567), 67542);
-  return TestClose ();
-}
-
 char res[20];
 
 char *
@@ -137,14 +110,14 @@ Wordle (char *input, char *expected)
 	      strcat (res, "0");
       i++;
     }
-
+ // userAttemps++;
   return res;
 }
 
 void 
 wordle_enter(char * answer) {
-char * resultado = "00000";
-char * WordOfDay = "LIMON";
+  char * resultado = "00000";
+//  char * WordOfDay = "LIMON";
 
   if (strlen(answer) != 5) {
     printf("ERROR: la palabra introducida no tiene 5 letras\n");
@@ -155,15 +128,15 @@ char * WordOfDay = "LIMON";
     return;
   }
   
-  wordle_intentos++;
+  userAttemps++;
 //  printf("intento %d", wordle_intentos);
-  resultado = Wordle(answer, WordOfDay);
+  resultado = Wordle(answer, wordleWordOfDay);
   
   if (strcmp(resultado, "22222") == 0) {
     printf("PALABRA ACERTADA correctamente\n");
     return;
   }
-  printf("%s intento %d\n", resultado, wordle_intentos);
+  printf("%s intento %d\n", resultado, userAttemps);
 }
 
 int
@@ -241,54 +214,44 @@ wordle_help(void) {
   printf("\nEnter a command or word:\n");
 }
 
+int wordle_run(char * answer){
+
+  if (strcmp(userAnswer, "C") == 0)          TestWordle (); 
+  else if (strcmp(userAnswer, "H") == 0)     wordle_help(); 
+  else if (strcmp(userAnswer, "T") == 0)     printf("*** TRADUCIR. No implementado\n");
+  else if (strcmp(userAnswer, "D") == 0)     printf("*** DICCIONARIO. No implementado\n");
+  else if (strcmp(userAnswer, "Q") == 0)     return 3;
+  else if (strcmp(userAnswer, "TODO") == 0)  TODO();
+  else if (strlen(userAnswer) == 5)          wordle_enter(userAnswer);
+  /* more else if clauses */
+  else printf("%c\n", userAnswer[0]);
+
+//  if (strcmp(userAnswer, "Q"))       return 3;
+  if (userAttemps > 5)                       return 2;
+  if (strcmp(userAnswer, wordleWordOfDay)==0)return 1; 
+  return 0;
+}
+
+void wordle_init(){
+  TestWordle ();  
+  wordle_help();  
+
+  wordleWordOfDay =  Dictionary[0];
+}
+
 int
 main ()
 {
   int i;
-  char answer[20];
-//  TestKapikua();
 
-  TestWordle ();
-  
-  wordle_help();
+  wordle_init();
   do {
-
-    scanf("%s",answer);
-    for (i=0;i<strlen(answer);i++) answer[i] = toupper(answer[i]);
-  //  printf("%s\n",answer);
-
-    if (strcmp(answer, "C") == 0)          TestWordle (); 
-    else if (strcmp(answer, "H") == 0)     wordle_help(); 
-    else if (strcmp(answer, "T") == 0)     printf("*** TRADUCIR. No implementado\n");
-    else if (strcmp(answer, "D") == 0)     printf("*** DICCIONARIO. No implementado\n");
-    else if (strcmp(answer, "Q") == 0)  ;
-    else if (strcmp(answer, "TODO") == 0)  TODO();
-    else if (strlen(answer) == 5)          wordle_enter(answer);
-    /* more else if clauses */
-    else printf("%c\n", answer[0]);
  
- /*
-    switch (answer) {
-      case "C": TestWordle ();
-                break;
-      case "H": wordle_help();
-                break;
-      case "T": printf("*** TRADUCIR. No implementado\n");
-                break;
-      case "D": printf("*** DICCIONARIO. No implementado\n");
-                break;
-      case "Q": break;
-      default:  printf("%c\n", answer[0]);
-                break;
-    }
-   if (toupper(answer) == 'H') wordle_help();
-    else if (toupper(answer) == 'T') printf("*** TRADUCIR. No implementado\n");
-    else if (toupper(answer) == 'D') printf("*** DICCIONARIO. No implementado\n");
-    else if (toupper(answer) == 'Q') ;
-    else printf("%c\n", toupper(answer));
-  } while (toupper(answer) != 'Q');
-*/
-  } while (strcmp(answer, "Q") && (wordle_intentos < 3));
+    scanf("%s",userAnswer);
+    for (i=0;i<strlen(userAnswer);i++) userAnswer[i] = toupper(userAnswer[i]);
+    //printf("%s\n",answer);
+
+  } while (wordle_run(userAnswer) == 0);
   
   return 0;
 }
